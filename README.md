@@ -1,39 +1,48 @@
 # sim808gpstracker
-DIY cheap GPS motorbike/car tracker based on  ATMEGA 328P (arduino uno chip) and SIM808 module from China (includes GPS and GNSS function). The total cost is below 20USD ( as in 2019 ) and positioning accuracy is ~1-20 meters ( tested in Europe location)
+DIY cheap GPS motorbike/car tracker based on  ATMEGA 328P (arduino uno chip) and SIM808 module from China (includes GPS and GNSS function). The total cost is below 20USD ( as in 2019 ) and positioning accuracy is ~1-20 meters ( tested in Europe location). Accoriding to SIM7500 / SIM7600 modules (LTE CAT1 ) specification this source code also may work on these boards (except usage of GPRS connectivity ). 
 
-The device when called by mobile phone polls info from GPS module ( if can fix to sattelites - tries several minutes to fix) or when not available polls cell-id info from nearest 2G cell and  using GPRS  query Google servers for GPS location of that 2G cell. Collected location information is send back as text message to your phone as Google Map link. 
+You can find SIMCOM modules guides here : https://simcom.ee/documents/
+
+The device when called by mobile phone polls info from GPS module (if can fix to sattelites - tries several minutes to fix) or when not available polls cell-id info from nearest 2G cell and  using GPRS  query Google servers for GPS location of that 2G cell. Collected location information is send back as text message to your phone as Google Map link. 
 I have tried to keep the code as simple as possible and conserve battery power so functionality is rather limited... However...
 
 There is also experimental version "main7.c"/"main8.c" which uses set of commands to control behavior of the tracking device using text messages. One of modes (MULTI) sends 5 times GPS location in 4-5 minutes interval upon receiving particular message. There is also GUARD option to alert in case vehicle has been stolen and is on the move...
 
-The software can also be customized to provide location in realtime to some HTTP POST /FTP server (there is short tutorial how to do it here https://www.raviyp.com/embedded/194-sim900-gprs-http-at-commands?start=1 ) - it is up to you to expand the code. Using GPRS to send HTTP / TCP IP requires good power source for SIM808 board otherwise it will restart itself with "UNDERVOLTAGE WARNING"...
+The software can also be further customized to provide location in realtime to some HTTP POST /FTP server (see my other IoT project where I am doing it with SIM800L module which has same commands : https://www.youtube.com/watch?v=i4JgbwCktYQ  , the code is here https://github.com/mcore1976/smartmetering) - it is up to you to expand the code, it will take you probably few hours to implement this feature...
+But REMEMBER - Using GPRS to send HTTP / TCP IP requires good power source for SIM808 board otherwise it will restart itself with "UNDERVOLTAGE WARNING"...
+
+------------------------------------------------------------------------------------------------------------------------------
 
 BILL OF MATERIAL LIST (as for year 2019):
 
-a) SIM808 based board BK-SIM808 (10-12 USD on Aliexpress )
- - search for "www.and-global.com" boards BK-SIM808 or equivalent...
+1. SIM808 based board BK-SIM808 (10-12 USD on Aliexpress )
+ - search for "www.and-global.com" boards BK-SIM808 or equivalent (you may try here http://and-global.en.alibaba.com/ )...
    https://cdn.instructables.com/ORIG/FAO/80RU/IXLALERK/FAO80RUIXLALERK.pdf)
    it may also work with boards SKU405361-SIM808 (see description below for source code options)
    
-b) GPS (passive) antenna with IPEX / U.FL connector matching BK-SIM808 board - 2 USD
+2. GPS (passive) antenna with IPEX / U.FL connector matching BK-SIM808 board - 2 USD
 
-c) GSM antenna with IPEX / U.FL connector matching BK-SIM808 board - 1 USD
+3. GSM antenna with IPEX / U.FL connector matching BK-SIM808 board - 1 USD
 
-d) ATMEGA 328P (arduino uno) - 2 USD or ATMEGA328P based board : https://www.theengineeringprojects.com/2018/06/introduction-to-arduino-pro-mini.html  
+4. ATMEGA 328P (arduino uno) - 2 USD or ATMEGA328P based board : https://www.theengineeringprojects.com/2018/06/introduction-to-arduino-pro-mini.html  
 
-e) 3x 1N4007 (1 USD) - to convert 5V from powerbank to 3.3V for ATMEGA328P VCC ( only for BK-808 board and others that require TTL 3.3V logic)
+5. XTAL 8MHz - quartz crystal with 8 MHz frequency to ensure clock stability of ATMEGA and keep it synchronized with serial port of SIM808 module even when temperature changes (internal RC oscillator in ATMEGA is very unstable). Using XTAL is optional (compile scripts configure internal RC clock by default ) but i do RECOMMEND using XTAL due to poor internal clock of ATMEGA.  This one costs 0.2USD
 
-f) 2x 1000uF / 16V capacitor ( 0.5 USD) - connect to VCC & GND of SIM808 board 
+6. 2 x 22pF capacitor for XTAL - 0.2 USD
+
+7. 3x 1N4007 (1 USD) - to convert 5V from powerbank to 3.3V for ATMEGA328P VCC ( only for BK-808 board and others that require TTL 3.3V logic)
+
+8. 2x 1000uF / 16V capacitor ( 0.5 USD) - connect to VCC & GND of SIM808 board 
    AND to existing 100uF (parallel) on the SIM808 board - usage of this capacitor depends on type of SIM808 board
 
-g) 100nF (or some other in range 100nF-1uF) / 12V (or higher)  capacitor (0.2 USD) - connect to VCC & GND of ATMEGA328P ( if not using "Arduino Pro Mini" board)
+9. 100nF (or some other in range 100nF-1uF) / 12V (or higher)  capacitor (0.2 USD) - connect to VCC & GND of ATMEGA328P ( if not using "Arduino Pro Mini" board)
 
-h) universal PCB, pins & connector (2 USD) or some wires with pins if you going to use boards like "Arduino Pro Mini" instead 
+10. universal PCB, pins & connector (2 USD) or some wires with pins if you going to use boards like "Arduino Pro Mini" instead 
 
-i) USB Powerbank 5V to make it work...
+11. USB Powerbank 5V to make it work...
 
 
-
+------------------------------------------------------------------------------------------------------------------------------
 
 CONNECTIONS TO BE MADE :
 
@@ -44,7 +53,7 @@ CONNECTIONS TO BE MADE :
 5) SIM808 board VCC (BK-SIM808 pin V / PWRIN )  : to powerbank +5V VCC
 6) SIM808 board PWRKEY (BK-SIM808 pin K - left unused - it is internally bound to GND, however when breaking this connection it can be used to switch on/off whole SIM808 board)
 
-OPTIONAL) SIM808 RI/RING if available (No such pin on BK-SIM808 board) - to  ATMEGA328P INT0 pin #4,  and then you may experiment with ATMEGA POWERDOWN mode by uncommenting appropriate portion of the source code 
+OPTIONAL) SIM808 RI/RING if available (No such pin on BK-SIM808 board) - to  ATMEGA328P INT0 pin #4,  and then you may experiment with ATMEGA POWERDOWN mode by uncommenting appropriate portion of the source code. I didn't have such board so I couldn't check this option.
 
 7) Capacitor 1000uF between +5V and GND of powerbank  (optional, most of them already has some huge capacitors)
 
@@ -56,7 +65,10 @@ OPTIONAL) SIM808 RI/RING if available (No such pin on BK-SIM808 board) - to  ATM
 
 11) The AND-GLOBAL BK-SIM808 board I have used has TO SMALL electrolytic capacitor (mine had only 100uF). You have to solder/add another big capacitor (I have used 2200uF/10V, but it can be 1000uF/10V ) in parallel to make this board work correctly. Otherwise it will continously restart itself while trying to register to the 2G network.
 
+12) Connect crystal 8MHz between pins 9 & 10 of ATMEGA 328p and add blocking capacitors 22pF between crystal pins and GND line. If you want to use crystal pleas modify "compileatmegaX" file by putting appropriate l-fuse value to avrdude command.
 
+
+----------------------------------------------------------------------------------------------------------------------------
 
 SOURCE FILE OPTIONS :
 
@@ -71,7 +83,7 @@ Below there are two types of source files provided, first for BK-808 board (with
 
 "main7.c" (+ compilation script "compileatmega7" Linux/"compileatmega7.bat" Windows) - EXPERIMENTAL VERSION - source file for SIM808 boards WITH DTR/SLEEP PIN exposed as BK-808 board. To use this file you will have to attach ATMEGA PC5 PIN #28 to SIM808 board DTR/SLEEP pin. 
 
-This version provides SMS control :
+This version provides SMS (mobile texting)  control of tracker behavior :
 
 Command can be send in lower or upper letters. If command is correct it will be responded with appropriate text message confirmation.
 
@@ -96,21 +108,28 @@ If you want to use board that has 5V TTL logic DO NOT put 1N4007 Diodes to ATMEG
 
 "main8.c" (+ compilation script "compileatmega8" Linux / "compileatmega8.bat" Windows)  - EXPERIMENTAL VERSION with SMS commands (as version 7) - source file for other SIM808 boards without DTR and RING pin. To use this source file only RXD, TXD, GND lines have to be connected from SIM808 board to ATMEGA 328P.
 
--------------
+-------------------------------------------------------------------------------------------------------------------------
+
 
 IMPORTANT !!!
 In the code you have to put correct APN, USERNAME and PASSWORD of GPRS access from your Mobile Network Operator before compiling - replace word "internet" with correct words for your MNO (check your with your mobile operator how to configure GPRS access) :
 
-constchar SAPBR2[] PROGMEM = {"AT+SAPBR=3,1,\"APN\",\"internet\"\r\n"}; // Put your mobile operator APN name here
-constchar SAPBR3[] PROGMEM = {"AT+SAPBR=3,1,\"USER\",\"internet\"\r\n"}; // Put your mobile operator APN username here
-constchar SAPBR4[] PROGMEM = {"AT+SAPBR=3,1,\"PWD\",\"internet\"\r\n"}; // Put your mobile operator APN password here
+constchar SAPBR2[] PROGMEM = {"AT+SAPBR=3,1,\"APN\",\"internet\"\r\n"}; // Put your mobile operator APN name here instead of 'internet'
 
-... otherwise you won't be able to receive GSM Cell location when vehicle is indoor (garage ?) !!!
+constchar SAPBR3[] PROGMEM = {"AT+SAPBR=3,1,\"USER\",\"internet\"\r\n"}; // Put your mobile operator APN username here instead of 'internet'
+
+constchar SAPBR4[] PROGMEM = {"AT+SAPBR=3,1,\"PWD\",\"internet\"\r\n"}; // Put your mobile operator APN password here instead of 'internet'
+
+... otherwise you won't be able to receive GSM Cell location when vehicle is indoor (garage ?) !!!  This is only needed if you want to have indoor position  in case there is no satellite visibility.
+
 
 
 --------------------------------------------------------------------------------------------------------------------------
 
 COMPILATION ON LINUX PC :
+
+Link to video how to program the chip : https://www.youtube.com/watch?v=7klgyNzZ2TI
+
 
 To upload program code to the chip using cheapest USBASP programmer (less than 2 USD on eBay/Aliexpress) 
 look at this page : http://www.learningaboutelectronics.com/Articles/Program-AVR-chip-using-a-USBASP-with-10-pin-cable.php
@@ -121,23 +140,24 @@ After doing it you will be able to run compilation the script from the directory
 - "sudo chmod +rx compiletmega*" and "sudo ./compileatmega7"  ( for BK-808 board)
 - "sudo chmod +rx compiletmega*" and "sudo ./compileatmega8" ( for other SIM808 boards )
 
+--------------------------------------------------------------------------------------------------------------------------
+
 COMPILATION ON WINDOWS 10 PC :
 
 If you have Windows 10 machine - follow this tutorial to download and install full AVR-GCC environment : http://fab.cba.mit.edu/classes/863.16/doc/projects/ftsmin/windows_avr.html
 and use "compileatmegaXX.bat" files for compilaton in the directory where you have downloaded mainX.c files. You have to be logged as Windows Administrator and run "cmd" from search window to do that. Then use commands like "cd XXXXX" to change working directory to get to downloaded source files.
 
-
-
-If you are having problems with C code compilation or USBASR programmer you may also look at these tutorials  :  http://www.linuxandubuntu.com/home/setting-up-avr-gcc-toolchain-and-avrdude-to-program-an-avr-development-board-in-ubuntu 
-
-https://blog.podkalicki.com/how-to-compile-and-burn-the-code-to-avr-chip-on-linuxmacosxwindows/  
-
+---------------------------------------------------------------------------------------------------------------------------
 
 Some people do not like to use universal PCB and are having problems with soldering. You may use "Arduino Pro Mini" (or clone) instead.
-There are two types of this board - 5V voltage and 3.3V voltage. Pay attention to it when selecting the board so it will  match SIM808 board TTL logic (3.3V - BK-808 or 5V like on other boards). 
+There are two types of this board - 5V voltage and 3.3V voltage. Pay attention to it when selecting the board so it will  match SIM808 board TTL logic (3.3V - BK-808 or 5V like on other boards).  In such case you will not need parts like XTAL and capacitors for ATMEGA, since they are already in place on such ARDUINO board.
 
-Even when using "Arduino Pro Mini" you will have to connect USBASP programmer from KANDA socket (look here : https://www.atnel.pl/download/blog/ISP_KANDA.jpg )  to appropriate pins of this board  : SCK (pin 13), MISO (pin 12), MOSI (pin 11), RESET (pin RST), pin VCC, pin GND - like here when changing/uploading bootloader https://www.arduino.cc/en/Hacking/MiniBootloader
+Even when using "Arduino Pro Mini" you will still have to connect USBASP programmer with KANDA socket (look here : https://www.atnel.pl/download/blog/ISP_KANDA.jpg )  to appropriate pins of this board  : SCK (pin 13), MISO (pin 12), MOSI (pin 11), RESET (pin RST), pin VCC, pin GND and reprogram ATMEGA chip - like here when changing/uploading bootloader https://www.arduino.cc/en/Hacking/MiniBootloader
 Description of this board is here : https://www.theengineeringprojects.com/2018/06/introduction-to-arduino-pro-mini.html 
+
+Link to video how to program the chip : https://www.youtube.com/watch?v=7klgyNzZ2TI
+
+---------------------------------------------------------------------------------------------------------------------------
 
 NOTICE :
 
@@ -145,6 +165,7 @@ This GPS tracker solution is not based on ARDUINO FRAMEWORK (it does not use ARD
 The code without ARDUINO framework takes less memory so it can be uploaded even to smaller/older/smaller chips like ATMEGA168  ( you can find cheaper Arduino Pro Mini board with ATMEGA168 for ~1,5USD). 
 
 
+---------------------------------------------------------------------------------------------------------------------------
 
 OTHER INFO : 
 
